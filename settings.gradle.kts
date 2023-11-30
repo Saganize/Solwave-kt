@@ -27,5 +27,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "solwave"
-include(":sample")
 include(":solwave")

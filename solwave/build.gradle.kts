@@ -2,7 +2,7 @@ plugins {
     id("maven-publish")
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp")
+    kotlin("kapt")
     id("kotlinx-serialization")
 }
 
@@ -86,7 +86,7 @@ dependencies {
 
     // Room
     implementation("androidx.room:room-runtime:2.6.0")
-    ksp("androidx.room:room-compiler:2.6.0")
+    kapt("androidx.room:room-compiler:2.6.0")
     implementation("androidx.room:room-ktx:2.6.0")
 
     // gson
