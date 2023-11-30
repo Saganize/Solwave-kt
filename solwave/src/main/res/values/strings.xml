@@ -1,0 +1,27 @@
+<resources>
+    <string name="title_activity_solwave">SolwaveActivity</string>
+    <string name="session_expired_feedback">Your session has expired. Please login again.</string>
+    <string name="redirect_link"><![CDATA[&redirect_link=app%3A%2F%2Fsolwave.com%2Fdeeplink]]></string>
+    <string name="cluster_devnet"><![CDATA[&cluster=devnet]]></string>
+    <string name="saganize_url">app_url=https://saganize.com</string>
+
+    <!-- Wallet Info -->
+    <string name="saganize">Saganize</string>
+    <string name="dapp_encryption_public_key"><![CDATA[&dapp_encryption_public_key=]]></string>
+
+    <!-- Phantom -->
+    <string name="phantom_app_name">Phantom</string>
+    <string name="phantom_wallet_package">app.phantom</string>
+    <string name="phantom_app_url">https://phantom.app/ul/v1</string>
+    <string name="phantom_app_connect">https://phantom.app/ul/v1/connect?</string>
+    <string name="phantom_app_sign_tsx">https://phantom.app/ul/v1/signAndSendTransaction?</string>
+    <string name="phantom_encryption_public_key">phantom_encryption_public_key</string>
+
+    <!-- Solflare -->
+    <string name="solflare_app_name">Solflare</string>
+    <string name="solflare_wallet_package">com.solflare.mobile</string>
+    <string name="solflare_app_url">https://solflare.com/ul/v1</string>
+    <string name="solflare_app_connect">https://solflare.com/ul/v1/connect?</string>
+    <string name="solflare_app_sign_tsx">https://solflare.com/ul/v1/signAndSendTransaction?</string>
+    <string name="solflare_encryption_public_key">solflare_encryption_public_key</string>
+</resources>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application>
+        <activity
+            android:name=".SolwaveActivity"
+            android:launchMode="singleTask"
+            android:exported="true"
+            android:hardwareAccelerated="true"
+            android:label="@string/title_activity_solwave"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <!-- Accepts URIs that begin with "https://solwave.com/deep-link" -->
+                <data
+                    android:scheme="app"
+                    android:host="solwave.com"
+                    android:pathPrefix="/deeplink" />
+            </intent-filter>
+        </activity>
+
+    </application>
+
+</manifest>
