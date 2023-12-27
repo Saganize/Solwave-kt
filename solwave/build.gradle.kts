@@ -143,7 +143,7 @@ afterEvaluate {
 
                 groupId = "com.github.Saganize"
                 artifactId = "Solwave-kt"
-                version = "0.0.1"
+                version = "0.0.2"
             }
         }
     }

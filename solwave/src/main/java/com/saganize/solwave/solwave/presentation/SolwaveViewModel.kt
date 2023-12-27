@@ -238,7 +238,7 @@ class SolwaveViewModel(
                                             _state.update {
                                                 copy(
                                                     url = it.url + "?access-token=" +
-                                                        it.accessToken + "&api-key=" + apiKey,
+                                                            it.accessToken + "&api-key=" + apiKey,
                                                 )
                                             }
                                         }
@@ -297,7 +297,7 @@ class SolwaveViewModel(
                                             _state.update {
                                                 copy(
                                                     url = it.url + "?access-token=" + it.accessToken +
-                                                        "&api-key=" + apiKey + "&email=" + email,
+                                                            "&api-key=" + apiKey + "&email=" + email,
                                                 )
                                             }
                                         }
@@ -348,7 +348,7 @@ class SolwaveViewModel(
                                         _state.update {
                                             copy(
                                                 url = it.url + "?access-token=" + it.authToken +
-                                                    "&api-key=" + apiKey,
+                                                        "&api-key=" + apiKey,
                                             )
                                         }
                                     }
@@ -391,7 +391,7 @@ class SolwaveViewModel(
 //                                            )
                                             copy(
                                                 url = "http://192.168.29.224:5173/${it.idempotencyId}/transact" + "?access-token=" + it.authToken +
-                                                    "&api-key=" + apiKey,
+                                                        "&api-key=" + apiKey,
                                             )
                                         }
                                     }
