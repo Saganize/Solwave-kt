@@ -1,5 +1,7 @@
 package com.saganize.solwave.core.models
 
+import com.saganize.solwave.Solwave
+
 enum class SolwaveErrors(var message: String) {
     NoInternetConnectionMessage(NO_INTERNET),
     GenericErrorMsg(GENERIC_ERROR),
@@ -10,10 +12,13 @@ enum class SolwaveErrors(var message: String) {
     InitLoginErrorMessage(INIT_LOGIN_USER_ERROR),
     WebviewErrorMessage(WEBVIEW_ERROR),
     InitiateTransactionErrorMessage(INITIATE_TRANSACTION_ERROR),
+    InitiateSignMessageErrorMessage(INITIATE_SIGN_MESSAGE_ERROR),
+    InvalidSigningMessage(INVALID_SIGNING_MESSAGE_LENGTH),
     InvalidTransactionMessage(INVALID_TRANSACTION),
     NoStartEventMessage(NO_START_EVENT),
     NoApiKeyPassedMessage(NO_API_KEY_PASSED),
     NoTransactionPassedMessage(NO_TRANSACTION_PASSED),
+    NoMessagePassedMessage(NO_MESSAGE_PASSED),
     NoWalletSelectedMessage(NO_WALLET_SELECTED),
     ;
 
@@ -43,12 +48,18 @@ const val INIT_LOGIN_USER_ERROR =
     "Unable to login user at the moment. Please try again later."
 const val INITIATE_TRANSACTION_ERROR =
     "Unable to initiate transaction at the moment. Please try again later."
+const val INITIATE_SIGN_MESSAGE_ERROR =
+    "Unable to initiate sign message at the moment. Please try again later."
+const val INVALID_SIGNING_MESSAGE_LENGTH =
+    "Message length is greater than ${Solwave.SIGNING_MESSAGE_MAX_LENGTH}"
 const val WEBVIEW_ERROR = GENERIC_ERROR
 
 const val NO_START_EVENT = "No start event found. Illegal state."
 const val NO_API_KEY_PASSED = "No API key passed. Please pass API key to use the library."
 const val NO_TRANSACTION_PASSED =
     "No transaction passed. Please pass transaction to use the function."
+const val NO_MESSAGE_PASSED =
+    "No message passed. Please pass message to use the function."
 
 const val INVALID_TRANSACTION = "Invalid transaction. Please pass a valid transaction."
 

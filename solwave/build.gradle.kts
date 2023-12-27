@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("maven-publish")
     id("com.android.library")
@@ -18,6 +20,19 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(localPropertiesFile.inputStream())
+        }
+
+        buildConfigField("String", "BASE_URL", "\"${localProperties.getProperty("BASE_URL")}\"")
+        buildConfigField("String", "INITIATE_LOGIN", "\"${localProperties.getProperty("INITIATE_LOGIN")}\"")
+        buildConfigField("String", "INITIATE_CREATION", "\"${localProperties.getProperty("INITIATE_CREATION")}\"")
+        buildConfigField("String", "INITIATE_TRANSACTION", "\"${localProperties.getProperty("INITIATE_TRANSACTION")}\"")
+        buildConfigField("String", "SIMULATE_TRANSACTION", "\"${localProperties.getProperty("SIMULATE_TRANSACTION")}\"")
+        buildConfigField("String", "SIGN_MESSAGE", "\"${localProperties.getProperty("SIGN_MESSAGE")}\"")
     }
 
     buildTypes {
@@ -38,6 +53,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.3"

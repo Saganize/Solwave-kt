@@ -11,6 +11,7 @@ import com.saganize.solwave.data.remote.SolwaveAPI
 import com.saganize.solwave.domain.repository.ApiRepository
 import com.saganize.solwave.domain.repository.DataStoreRepository
 import com.saganize.solwave.domain.repository.DatabaseRepository
+import com.saganize.solwave.domain.usecases.GenerateSignMessage
 import com.saganize.solwave.domain.usecases.GetBalance
 import com.saganize.solwave.domain.usecases.GetEncryptionKeyPair
 import com.saganize.solwave.domain.usecases.GetLatestBlockHash
@@ -18,6 +19,7 @@ import com.saganize.solwave.domain.usecases.GetWallets
 import com.saganize.solwave.domain.usecases.GetWalletsPreference
 import com.saganize.solwave.domain.usecases.InitiateCreateUser
 import com.saganize.solwave.domain.usecases.InitiateLogin
+import com.saganize.solwave.domain.usecases.InitiateSignMessage
 import com.saganize.solwave.domain.usecases.InitiateTransaction
 import com.saganize.solwave.domain.usecases.SaveEncryptionKeyPair
 import com.saganize.solwave.domain.usecases.SaveWallet
@@ -84,6 +86,8 @@ class SolwaveAppModuleImpl(
             InitiateCreateUser(apiRepository),
             InitiateLogin(apiRepository),
             InitiateTransaction(apiRepository),
+            InitiateSignMessage(apiRepository),
+            GenerateSignMessage(),
         )
     }
 }

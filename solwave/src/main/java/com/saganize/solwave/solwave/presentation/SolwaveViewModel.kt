@@ -22,6 +22,7 @@ import com.saganize.solwave.core.models.SolwaveErrors
 import com.saganize.solwave.core.models.StartEvents
 import com.saganize.solwave.core.models.WalletInfo
 import com.saganize.solwave.core.models.WalletProvider
+import com.saganize.solwave.core.models.ifSuccess
 import com.saganize.solwave.core.models.jsonToError
 import com.saganize.solwave.core.util.extensions.closeActivity
 import com.saganize.solwave.core.util.extensions.defaultStringify
@@ -38,6 +39,7 @@ import com.saganize.solwave.domain.model.TransactionParams
 import com.saganize.solwave.domain.model.TransactionPayload
 import com.saganize.solwave.domain.model.TransactionResponse
 import com.saganize.solwave.domain.model.WalletEntity
+import com.saganize.solwave.domain.usecases.GenerateSignMessage
 import com.saganize.solwave.domain.usecases.GetBalance
 import com.saganize.solwave.domain.usecases.InitiateCreateUser
 import com.saganize.solwave.domain.usecases.InitiateLogin
@@ -65,6 +67,7 @@ import java.nio.ByteOrder
 class SolwaveViewModel(
     private val useCases: UseCases,
     private val start: String,
+    private val message: String,
     private val transaction: Transaction,
     private val apiKey: String,
     private val completeEvents: CompleteEvents,
@@ -124,6 +127,26 @@ class SolwaveViewModel(
                 }
 
                 _state.update { copy(screen = Screens.WalletScreen) }
+            }
+        } else if (start == StartEvents.SIGN_MESSAGE.event) {
+            viewModelScope.launch {
+                val selected = useCases.getWalletsPreference.execute(Unit)
+                    ?: throw IllegalStateException(SolwaveErrors.NoWalletSelectedMessage.message)
+
+                val wallets = useCases.getWallets.execute(Unit)
+
+                val message = this@SolwaveViewModel.message
+                wallets?.find { it.name == selected }?.let { wallet ->
+                    _state.update {
+                        copy(
+                            screen = Screens.SignMessageScreen(
+                                message = message,
+                            ),
+                            message = message,
+                            wallet = wallet.toWalletInfo(),
+                        )
+                    }
+                }
             }
         } else {
             viewModelScope.launch {
@@ -220,7 +243,7 @@ class SolwaveViewModel(
                                             }
                                         }
                                     }.ifError {
-                                        firebaseSignOut(event.context)
+                                        Log.e(TAG, "Error: $it")
                                         onEvent(
                                             SolwaveEvents.Error(
                                                 "User Creation Failed",
@@ -229,7 +252,7 @@ class SolwaveViewModel(
                                                 ),
                                             ),
                                         )
-                                        Log.e(TAG, "Error: $it")
+                                        firebaseSignOut(event.context)
                                     }
                             }
                         }
@@ -331,6 +354,7 @@ class SolwaveViewModel(
                                     }
                                 }
                             }.ifError {
+                                Log.e(TAG, "Error: $it")
                                 onEvent(
                                     SolwaveEvents.TransactionFailed(
                                         SolwaveErrors.InitiateTransactionErrorMessage.setError(
@@ -339,7 +363,49 @@ class SolwaveViewModel(
                                     ),
                                 )
                                 firebaseSignOut(event.context)
-                                Log.e(TAG, "Error: $it")
+                            }
+                    }
+                }
+            }
+
+            is SolwaveAuthNavEvents.InitiateSignMessage -> {
+                viewModelScope.launch {
+                    _state.value.wallet?.let { wallet ->
+                        useCases.initiateSignMessage.execute(wallet.key)
+                            .ifSuccess { response ->
+                                if (response?.errors?.isNotEmpty() == true) {
+                                    Log.e(TAG, "Error: ${response.errors.firstOrNull()?.message}")
+                                    SolwaveEvents.Error(
+                                        error = SolwaveErrors.InitiateSignMessageErrorMessage.setError(
+                                            response.errors.firstOrNull()?.message
+                                                ?: SolwaveErrors.InitiateSignMessageErrorMessage.message,
+                                        ),
+                                    )
+                                }
+                                response?.data?.firstOrNull()?.let {
+                                    withContext(Dispatchers.Main) {
+                                        _state.update {
+//                                            copy(
+//                                                url = it.url + "?access-token=" + it.authToken +
+//                                                    "&api-key=" + apiKey,
+//                                            )
+                                            copy(
+                                                url = "http://192.168.29.224:5173/${it.idempotencyId}/transact" + "?access-token=" + it.authToken +
+                                                    "&api-key=" + apiKey,
+                                            )
+                                        }
+                                    }
+                                }
+                            }.ifError { error ->
+                                Log.e(TAG, "Error: $error")
+                                onEvent(
+                                    SolwaveEvents.Error(
+                                        error = SolwaveErrors.InitiateSignMessageErrorMessage.setError(
+                                            error.jsonToError(),
+                                        ),
+                                    ),
+                                )
+                                firebaseSignOut(event.context)
                             }
                     }
                 }
@@ -431,6 +497,26 @@ class SolwaveViewModel(
                 }
             }
 
+            is SolwaveEvents.SignMessageUsingWallet -> {
+                viewModelScope.launch {
+                    _state.value.wallet?.let { wallet ->
+                        _state.value.keyPair?.let { keypair ->
+
+                            val params = GenerateSignMessage.Params(
+                                event.message,
+                                wallet,
+                                keypair,
+                            )
+
+                            useCases.generateSignMessage.execute(params).ifSuccess { deeplink ->
+                                _state.update { copy(deepLink = deeplink) }
+                                event.openDeepLink()
+                            }
+                        }
+                    }
+                }
+            }
+
             is SolwaveEvents.Error -> {
                 _state.update {
                     copy(
@@ -470,6 +556,8 @@ class SolwaveViewModel(
                             val decryptedDataBytes = box.open(dataBytes, nonceBytes)
                             val jsonData = String(decryptedDataBytes, Charsets.UTF_8)
 
+                            Log.d(TAG, "Decrypted data: $jsonData")
+
                             Gson().fromJson(jsonData, TransactionResponse::class.java)
                         }?.let {
                             _state.update { copy(screen = Screens.LoadingScreen) }
@@ -478,9 +566,43 @@ class SolwaveViewModel(
                 }
             }
 
+            is SolwaveEvents.DecryptSignedMessageResult -> {
+                val data = event.data
+                val nonce = event.nonce
+                val walletProviderName = state.value.wallet?.walletProvider?.toName() ?: return
+                val keypair = state.value.keyPair ?: return
+
+                viewModelScope.launch {
+                    useCases.getWallets.execute(Unit)
+                        ?.find { it.name == walletProviderName }
+                        ?.key
+                        ?.getSharedSecret()
+                        ?.run {
+                            val privateKeyBytes = Base58.decode(keypair.second)
+                            val nonceBytes = Base58.decode(nonce)
+                            val dataBytes = Base58.decode(data)
+                            val phantomKeyBytes = Base58.decode(this)
+
+                            val box = TweetNaclFast.Box(phantomKeyBytes, privateKeyBytes)
+                            val decryptedDataBytes = box.open(dataBytes, nonceBytes)
+                            val jsonData = String(decryptedDataBytes, Charsets.UTF_8)
+
+                            Log.d(TAG, "Decrypted data: $jsonData")
+
+                            Gson().fromJson(jsonData, TransactionResponse::class.java)
+                        }?.let {
+                            _state.update { copy(messageSignature = it.signature) }
+                        }
+                }
+            }
+
             is SolwaveEvents.TransactionDone -> {
                 _state.update { copy(screen = Screens.LoadingScreen) }
                 checkTransactionStatus(event.id)
+            }
+
+            is SolwaveEvents.MessageSigned -> {
+                _state.update { copy(messageSignature = event.signature) }
             }
         }
     }
@@ -704,6 +826,10 @@ class SolwaveViewModel(
                 } else {
                     it.getPublicKey()
                 }
+            }
+
+            StartEvents.SIGN_MESSAGE.event -> state.value.messageSignature?.let {
+                it
             }
 
             else -> state.value.transactionId

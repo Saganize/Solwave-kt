@@ -32,6 +32,7 @@ import com.saganize.solwave.solwave.presentation.screens.LoadingScreen
 import com.saganize.solwave.solwave.presentation.screens.LoginScreen
 import com.saganize.solwave.solwave.presentation.screens.NoAccountScreen
 import com.saganize.solwave.solwave.presentation.screens.PayScreen
+import com.saganize.solwave.solwave.presentation.screens.SignMessageScreen
 import com.saganize.solwave.solwave.presentation.screens.SignupScreen
 import com.saganize.solwave.solwave.presentation.screens.TransactionDoneScreen
 import com.saganize.solwave.solwave.presentation.screens.TransactionFailedScreen
@@ -107,6 +108,13 @@ fun SolwaveScreen(viewModel: SolwaveViewModel) {
                                 viewModel = viewModel,
                                 transactionParams = state.transactionParams,
                             )
+
+                            is Screens.SignMessageScreen -> {
+                                SignMessageScreen(
+                                    viewModel = viewModel,
+                                    message = state.message,
+                                )
+                            }
 
                             else -> {
                                 LoadingItem()

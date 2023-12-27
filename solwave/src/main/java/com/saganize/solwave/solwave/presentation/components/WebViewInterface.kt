@@ -15,10 +15,12 @@ import com.saganize.solwave.domain.model.TransactionPayloadStringHolder
 import com.saganize.solwave.domain.model.TransactionSerializer
 import com.saganize.solwave.solwave.presentation.SolwaveViewModel
 import com.solana.core.Transaction
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 class WebViewInterface(
-    private val viewmodel: SolwaveViewModel,
+    private val viewModel: SolwaveViewModel,
     private val context: Context,
+    private val message: String? = null,
     private val transactionParams: TransactionParams,
     private val onWalletReceived: (emailId: String, publicKey: String) -> Unit,
     private val onToast: (message: String, shouldEndWebView: Boolean) -> Unit = { _, _ -> },
@@ -52,7 +54,13 @@ class WebViewInterface(
     }
 
     @JavascriptInterface
-    fun getTransaction(): String {
+    fun getTransaction(): String? {
+        if (message != null) {
+            Log.d("WebViewInterface", "getTransaction: message is not null, returning...")
+            return null
+        }
+
+        Log.d("WebViewInterface", "getTransaction: message is null, proceeding...")
         Log.d("WebViewInterface", "getTransaction: ${transactionParams.data.transaction}")
 
         val params = TransactionParamsStringHolder(
@@ -77,12 +85,29 @@ class WebViewInterface(
     }
 
     @JavascriptInterface
+    fun getMessage(): String {
+        message?.let {
+            Log.d("WebViewInterface", "getMessage: $it")
+            return message
+        }
+        return ""
+    }
+
+    @OptIn(ExperimentalEncodingApi::class)
+    @JavascriptInterface
+    fun onMessageSigned(signature: String, messageBytes: String) {
+        Log.d("WebViewInterface", "onMessageSigned: signature: $signature, messageBytes: $messageBytes")
+
+        viewModel.onEvent(SolwaveEvents.MessageSigned(signature, messageBytes))
+    }
+
+    @JavascriptInterface
     fun transactionComplete(signature: String, idempotencyId: String) {
         Log.d(
             "WebViewInterface",
             "transactionCompleted: signature: $signature, idempotencyId: $idempotencyId",
         )
-        viewmodel.onEvent(SolwaveEvents.TransactionDone(signature))
+        viewModel.onEvent(SolwaveEvents.TransactionDone(signature))
     }
 
     @JavascriptInterface
@@ -103,6 +128,7 @@ enum class WebViewClosingEvents {
     LoginFailure,
     ServerError,
     TransactionFailed,
+    SigningMessageSuccess,
 }
 
 fun getWebViewClosingEvent(ordinal: Long): WebViewClosingEvents {
@@ -114,6 +140,7 @@ fun getWebViewClosingEvent(ordinal: Long): WebViewClosingEvents {
         4L -> WebViewClosingEvents.LoginFailure
         5L -> WebViewClosingEvents.ServerError
         6L -> WebViewClosingEvents.TransactionFailed
+        7L -> WebViewClosingEvents.SigningMessageSuccess
         else -> WebViewClosingEvents.ServerError
     }
 }

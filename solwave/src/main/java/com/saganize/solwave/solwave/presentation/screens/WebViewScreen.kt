@@ -100,6 +100,7 @@ fun WebViewScreen(viewModel: SolwaveViewModel? = null) {
                         WebViewInterface(
                             viewModel,
                             it,
+                            message = state.message,
                             state.transactionParams,
                             // TODO: save email id too
                             onWalletReceived = { _, publicKey ->
@@ -143,6 +144,13 @@ fun WebViewScreen(viewModel: SolwaveViewModel? = null) {
                                         SolwaveNavEvents.CloseWebViewScreen(
                                             context,
                                             closeActivity = false,
+                                        ),
+                                    )
+
+                                    WebViewClosingEvents.SigningMessageSuccess -> viewModel.onNav(
+                                        SolwaveNavEvents.CloseWebViewScreen(
+                                            context,
+                                            closeActivity = true,
                                         ),
                                     )
 

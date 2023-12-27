@@ -13,4 +13,6 @@ data class UseCases(
     val initiateCreateUser: InitiateCreateUser,
     val initiateLogin: InitiateLogin,
     val initiateTransaction: InitiateTransaction,
+    val initiateSignMessage: InitiateSignMessage,
+    val generateSignMessage: GenerateSignMessage,
 )

@@ -27,6 +27,10 @@ sealed class SolwaveAuthNavEvents {
     data class InitiateTransaction(
         val context: Context,
         val user: Transaction?,
-    ) :
-        SolwaveAuthNavEvents()
+    ) : SolwaveAuthNavEvents()
+
+    data class InitiateSignMessage(
+        val context: Context,
+        val publicKey: String,
+    ) : SolwaveAuthNavEvents()
 }

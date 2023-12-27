@@ -9,6 +9,7 @@ sealed class Screens {
     object SignupScreen : Screens()
     object WalletScreen : Screens()
     data class PayScreen(val transactionParams: TransactionParams) : Screens()
+    data class SignMessageScreen(val message: String) : Screens()
     object NoFundsScreen : Screens()
     object TransactionDoneScreen : Screens()
     object TransactionFailedScreen : Screens()

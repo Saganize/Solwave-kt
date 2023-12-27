@@ -2,9 +2,11 @@ package com.saganize.solwave.data.remote
 
 import com.saganize.solwave.data.remote.model.NetworkResponse
 import com.saganize.solwave.data.remote.model.requests.InitiateAuthRequest
+import com.saganize.solwave.data.remote.model.requests.InitiateSignMessageRequest
 import com.saganize.solwave.data.remote.model.requests.InitiateTransactionRequest
 import com.saganize.solwave.data.remote.model.requests.SimulateTransactionRequest
 import com.saganize.solwave.data.remote.model.response.InitiateAuthResponse
+import com.saganize.solwave.data.remote.model.response.InitiateSignMessageResponse
 import com.saganize.solwave.data.remote.model.response.InitiateTransactionResponse
 import com.saganize.solwave.data.remote.model.response.SimulateTransactionResponse
 import com.saganize.solwave.domain.repository.ApiRepository
@@ -42,6 +44,14 @@ class ApiRepositoryImpl(
     override suspend fun simulateTransaction(requestBody: SimulateTransactionRequest):
         Response<NetworkResponse<List<SimulateTransactionResponse>>> {
         return api.simulateTransaction(
+            requestBody = requestBody,
+            api = apiKey,
+        )
+    }
+
+    override suspend fun initiateSignMessage(requestBody: InitiateSignMessageRequest):
+        Response<NetworkResponse<List<InitiateSignMessageResponse>>> {
+        return api.initiateSignMessage(
             requestBody = requestBody,
             api = apiKey,
         )

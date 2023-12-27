@@ -41,6 +41,13 @@ class SolwaveActivity : ComponentActivity() {
         val apiKey = intent.getStringExtra(EventKeys.API_KEY.key)
             ?: throw IllegalStateException(SolwaveErrors.NoApiKeyPassedMessage.message)
 
+        val message = if (start == StartEvents.SIGN_MESSAGE.event) {
+            intent.getStringExtra(EventKeys.MESSAGE.key)
+                ?: throw IllegalStateException(SolwaveErrors.NoMessagePassedMessage.message)
+        } else {
+            ""
+        }
+
         val transactionString = if (start == StartEvents.PAY.event) {
             intent.getStringExtra(EventKeys.TRANSACTION.key)
                 ?: throw IllegalStateException(SolwaveErrors.NoTransactionPassedMessage.message)
@@ -61,6 +68,7 @@ class SolwaveActivity : ComponentActivity() {
                     SolwaveViewModel(
                         module.usecases,
                         start,
+                        message = message,
                         transactionString.toTransaction(),
                         apiKey,
                         completeEvents,
