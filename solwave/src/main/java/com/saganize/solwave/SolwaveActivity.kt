@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.saganize.solwave.core.di.SolwaveAppModuleImpl
 import com.saganize.solwave.core.events.SolwaveEvents
+import com.saganize.solwave.core.models.DeeplinkActionType
 import com.saganize.solwave.core.models.EventKeys
 import com.saganize.solwave.core.models.SolwaveErrors
 import com.saganize.solwave.core.models.StartEvents
@@ -96,11 +97,22 @@ class SolwaveActivity : ComponentActivity() {
         val state = viewModel.state.value
 
         if (intent?.action == Intent.ACTION_VIEW) {
-            val uri = intent.data
-            val nonce = uri?.getQueryParameter("nonce") ?: ""
-            val data = uri?.getQueryParameter("data") ?: ""
+            val uri = intent.data ?: return run {
+                viewModel.updateDeeplinkActionType(null)
 
-            uri?.getQueryParameter(getString(R.string.solflare_encryption_public_key))?.let {
+                return@run viewModel.onEvent(
+                    SolwaveEvents.Error(
+                        title = "Something went wrong.",
+                        error = SolwaveErrors.GenericErrorMsg,
+                        closeWebView = false,
+                    ),
+                )
+            }
+
+            val nonce = uri.getQueryParameter("nonce") ?: ""
+            val data = uri.getQueryParameter("data") ?: ""
+
+            uri.getQueryParameter(getString(R.string.solflare_encryption_public_key))?.let {
                 state.keyPair?.let { keypair ->
                     viewModel.onEvent(
                         SolwaveEvents.SaveWallet(
@@ -112,7 +124,7 @@ class SolwaveActivity : ComponentActivity() {
                 }
             }
 
-            uri?.getQueryParameter(getString(R.string.phantom_encryption_public_key))?.let {
+            uri.getQueryParameter(getString(R.string.phantom_encryption_public_key))?.let {
                 state.keyPair?.let { keypair ->
                     viewModel.onEvent(
                         SolwaveEvents.SaveWallet(
@@ -124,18 +136,52 @@ class SolwaveActivity : ComponentActivity() {
                 }
             }
 
-            if (
-                uri?.getQueryParameter(getString(R.string.solflare_encryption_public_key))
-                    .isNullOrEmpty() &&
-                uri?.getQueryParameter(getString(R.string.phantom_encryption_public_key))
-                    .isNullOrEmpty()
-            ) {
-                uri?.getQueryParameter("data")?.let {
-                    viewModel.onEvent(SolwaveEvents.DecryptTransactionResult(it, nonce))
+            when (state.deeplinkActionType) {
+                DeeplinkActionType.SIGN_MESSAGE -> {
+                    uri.apply {
+                        getQueryParameter("nonce")?.let { nonce ->
+                            getQueryParameter("data")?.let { data ->
+                                viewModel.onEvent(
+                                    SolwaveEvents.DecryptSignedMessageResult(
+                                        data,
+                                        nonce,
+                                        this@SolwaveActivity,
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                }
+
+                DeeplinkActionType.SIGN_AND_SEND_TRANSACTION -> {
+                    uri.apply {
+                        getQueryParameter("nonce")?.let { nonce ->
+                            getQueryParameter("data")?.let { data ->
+                                viewModel.onEvent(
+                                    SolwaveEvents.DecryptTransactionResult(
+                                        data,
+                                        nonce,
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                }
+
+                else -> {
+                    viewModel.onEvent(
+                        SolwaveEvents.Error(
+                            title = "Something went wrong.",
+                            error = SolwaveErrors.GenericErrorMsg,
+                            closeWebView = false,
+                        ),
+                    )
+                    viewModel.updateDeeplinkActionType(null)
+                    return
                 }
             }
 
-            uri?.getQueryParameter("errorMessage")?.let {
+            uri.getQueryParameter("errorMessage")?.let {
                 viewModel.onEvent(
                     SolwaveEvents.Error(
                         error = SolwaveErrors.DeepLinkErrorMessage.setError(
@@ -144,6 +190,8 @@ class SolwaveActivity : ComponentActivity() {
                     ),
                 )
             }
+
+            viewModel.updateDeeplinkActionType(null)
         }
     }
 }

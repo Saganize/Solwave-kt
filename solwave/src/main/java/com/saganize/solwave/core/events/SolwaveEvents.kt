@@ -26,7 +26,11 @@ sealed class SolwaveEvents {
     data class PayUsingWallet(val openDeepLink: () -> Unit = {}) : SolwaveEvents()
     data class DecryptTransactionResult(val data: String, val nonce: String) : SolwaveEvents()
 
-    data class DecryptSignedMessageResult(val data: String, val nonce: String) : SolwaveEvents()
+    data class DecryptSignedMessageResult(
+        val data: String,
+        val nonce: String,
+        val context: Context,
+    ) : SolwaveEvents()
 
     data class MessageSigned(val signature: String, val messageBytes: String) : SolwaveEvents()
     data class TransactionDone(val id: String) : SolwaveEvents()

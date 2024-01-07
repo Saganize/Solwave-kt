@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.saganize.solwave.core.events.SolwaveAuthNavEvents
 import com.saganize.solwave.core.events.SolwaveEvents
 import com.saganize.solwave.core.events.SolwaveNavEvents
+import com.saganize.solwave.core.models.DeeplinkActionType
 import com.saganize.solwave.core.models.WalletProvider
 import com.saganize.solwave.core.presentation.components.AppNameBar
 import com.saganize.solwave.core.presentation.components.ButtonPrimary
@@ -272,6 +273,7 @@ fun PayScreen(
         val paymentEvent = state.deepLink?.let { solanaWalletLauncherPayment(it) }
 
         LaunchedEffect(state.deepLink) {
+            viewModel.updateDeeplinkActionType(DeeplinkActionType.SIGN_AND_SEND_TRANSACTION)
             paymentEvent?.invoke()
         }
 

@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.saganize.solwave.core.events.SolwaveAuthNavEvents
 import com.saganize.solwave.core.events.SolwaveEvents
+import com.saganize.solwave.core.models.DeeplinkActionType
 import com.saganize.solwave.core.models.WalletProvider
 import com.saganize.solwave.core.presentation.components.AppNameBar
 import com.saganize.solwave.core.presentation.components.ButtonPrimary
@@ -51,11 +52,10 @@ fun SignMessageScreen(
 
     val context = LocalContext.current
 
-    val paymentEvent = state.deepLink?.let {
-        solanaWalletLauncherPayment(it)
-    }
+    val paymentEvent = state.deepLink?.let { solanaWalletLauncherPayment(it) }
 
     LaunchedEffect(state.deepLink) {
+        viewModel.updateDeeplinkActionType(DeeplinkActionType.SIGN_MESSAGE)
         paymentEvent?.invoke()
     }
 
@@ -89,7 +89,7 @@ fun SignMessageScreen(
                 Spacer(modifier = Modifier.padding(6.dp))
 
                 Text(
-                    text = message.take(SolwaveState.maxSignMessageLength),
+                    text = message.take(SolwaveState.MAX_SIGN_MESSAGE_LENGTH),
                     style = MaterialTheme.typography.body2,
                     color = SolwaveTheme.colors.greyDisabled.mediumEmphasis,
                 )
@@ -199,4 +199,3 @@ fun SignMessageScreenPreview() {
         )
     }
 }
-

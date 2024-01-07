@@ -16,6 +16,7 @@ import com.saganize.solwave.core.events.SolwaveAuthNavEvents
 import com.saganize.solwave.core.events.SolwaveEvents
 import com.saganize.solwave.core.events.SolwaveNavEvents
 import com.saganize.solwave.core.models.CompleteEvents
+import com.saganize.solwave.core.models.DeeplinkActionType
 import com.saganize.solwave.core.models.NO_USER_FOUND
 import com.saganize.solwave.core.models.Screens
 import com.saganize.solwave.core.models.SolwaveErrors
@@ -238,7 +239,7 @@ class SolwaveViewModel(
                                             _state.update {
                                                 copy(
                                                     url = it.url + "?access-token=" +
-                                                            it.accessToken + "&api-key=" + apiKey,
+                                                        it.accessToken + "&api-key=" + apiKey,
                                                 )
                                             }
                                         }
@@ -297,7 +298,7 @@ class SolwaveViewModel(
                                             _state.update {
                                                 copy(
                                                     url = it.url + "?access-token=" + it.accessToken +
-                                                            "&api-key=" + apiKey + "&email=" + email,
+                                                        "&api-key=" + apiKey + "&email=" + email,
                                                 )
                                             }
                                         }
@@ -344,13 +345,11 @@ class SolwaveViewModel(
                                     )
                                 }
                                 response?.data?.firstOrNull()?.let {
-                                    withContext(Dispatchers.Main) {
-                                        _state.update {
-                                            copy(
-                                                url = it.url + "?access-token=" + it.authToken +
-                                                        "&api-key=" + apiKey,
-                                            )
-                                        }
+                                    _state.update {
+                                        copy(
+                                            url = it.url + "?access-token=" + it.authToken +
+                                                "&api-key=" + apiKey,
+                                        )
                                     }
                                 }
                             }.ifError {
@@ -383,17 +382,11 @@ class SolwaveViewModel(
                                     )
                                 }
                                 response?.data?.firstOrNull()?.let {
-                                    withContext(Dispatchers.Main) {
-                                        _state.update {
-//                                            copy(
-//                                                url = it.url + "?access-token=" + it.authToken +
-//                                                    "&api-key=" + apiKey,
-//                                            )
-                                            copy(
-                                                url = "http://192.168.29.224:5173/${it.idempotencyId}/transact" + "?access-token=" + it.authToken +
-                                                        "&api-key=" + apiKey,
-                                            )
-                                        }
+                                    _state.update {
+                                        copy(
+                                            url = it.url + "?access-token=" + it.authToken +
+                                                "&api-key=" + apiKey,
+                                        )
                                     }
                                 }
                             }.ifError { error ->
@@ -556,7 +549,7 @@ class SolwaveViewModel(
                             val decryptedDataBytes = box.open(dataBytes, nonceBytes)
                             val jsonData = String(decryptedDataBytes, Charsets.UTF_8)
 
-                            Log.d(TAG, "Decrypted data: $jsonData")
+                            Log.d(TAG, "Decrypted transaction data: $jsonData")
 
                             Gson().fromJson(jsonData, TransactionResponse::class.java)
                         }?.let {
@@ -587,11 +580,12 @@ class SolwaveViewModel(
                             val decryptedDataBytes = box.open(dataBytes, nonceBytes)
                             val jsonData = String(decryptedDataBytes, Charsets.UTF_8)
 
-                            Log.d(TAG, "Decrypted data: $jsonData")
+                            Log.d(TAG, "Decrypted signed message data: $jsonData")
 
                             Gson().fromJson(jsonData, TransactionResponse::class.java)
                         }?.let {
                             _state.update { copy(messageSignature = it.signature) }
+                            event.context.closeActivity()
                         }
                 }
             }
@@ -818,6 +812,10 @@ class SolwaveViewModel(
         _state.update { copy(loading = loading) }
     }
 
+    fun updateDeeplinkActionType(deeplinkActionType: DeeplinkActionType?) {
+        _state.update { copy(deeplinkActionType = deeplinkActionType) }
+    }
+
     override fun onCleared() {
         val result = when (start) {
             StartEvents.SELECT.event -> state.value.wallet?.key?.let {
@@ -828,9 +826,7 @@ class SolwaveViewModel(
                 }
             }
 
-            StartEvents.SIGN_MESSAGE.event -> state.value.messageSignature?.let {
-                it
-            }
+            StartEvents.SIGN_MESSAGE.event -> state.value.messageSignature
 
             else -> state.value.transactionId
         }
@@ -840,6 +836,8 @@ class SolwaveViewModel(
                 it,
             )
         }
+
+        _state.update { copy(url = null, deeplinkActionType = null) }
 
         super.onCleared()
     }

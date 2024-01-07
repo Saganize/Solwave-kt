@@ -1,5 +1,6 @@
 package com.saganize.solwave.solwave.model
 
+import com.saganize.solwave.core.models.DeeplinkActionType
 import com.saganize.solwave.core.models.Screens
 import com.saganize.solwave.core.models.SolwaveErrors
 import com.saganize.solwave.core.models.WalletInfo
@@ -18,8 +19,9 @@ data class SolwaveState(
     val transactionId: String = "",
     val balance: Double? = null,
     val loading: Boolean = false,
+    val deeplinkActionType: DeeplinkActionType? = null,
 ) {
     companion object {
-        const val maxSignMessageLength = 200
+        const val MAX_SIGN_MESSAGE_LENGTH = 200
     }
 }
