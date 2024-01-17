@@ -1,9 +1,11 @@
 package com.saganize.solwave.solwave.presentation.components
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -24,6 +26,7 @@ import com.saganize.solwave.core.presentation.theme.semiBold
 import com.saganize.solwave.core.util.extensions.displayWallet
 import com.saganize.solwave.core.util.extensions.getPublicKey
 import com.saganize.solwave.core.util.extensions.isAppInstalled
+import com.saganize.solwave.core.util.extensions.showToast
 
 @Composable
 fun WalletItem(
@@ -56,10 +59,15 @@ fun WalletItem(
             )
 
             TextButton(
-                enabled = context.isAppInstalled(walletPackage),
+                colors = ButtonDefaults.textButtonColors(
+                    backgroundColor = Color.Transparent,
+                    contentColor = Color.White,
+                ),
                 onClick = {
                     if (context.isAppInstalled(walletPackage)) {
                         onConnectClick()
+                    } else {
+                        context.showToast("You do not have $name installed", Toast.LENGTH_SHORT)
                     }
                 },
             ) {

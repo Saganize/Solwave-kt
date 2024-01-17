@@ -1,18 +1,16 @@
 package com.saganize.solwave.core.util
 
-import com.saganize.solwave.BuildConfig
-
 object BackendEndpoints {
-    const val BASE_URL: String = BuildConfig.BASE_URL
+    const val BASE_URL: String = "https://staging.saganize.com/api/v1/"
 
     object Auth {
-        const val INITIATE_LOGIN = BuildConfig.INITIATE_LOGIN
-        const val INITIATE_CREATION = BuildConfig.INITIATE_CREATION
+        const val INITIATE_LOGIN = "solwave/auth/initiateLogin"
+        const val INITIATE_CREATION = "solwave/auth/initiateCreateUser"
     }
 
     object Transaction {
-        const val INITIATE_TRANSACTION = BuildConfig.INITIATE_TRANSACTION
-        const val SIMULATE_TRANSACTION = BuildConfig.SIMULATE_TRANSACTION
-        const val SIGN_MESSAGE = BuildConfig.SIGN_MESSAGE
+        const val INITIATE_TRANSACTION = "transaction/initiateTransaction"
+        const val SIMULATE_TRANSACTION = "transaction/simulate"
+        const val SIGN_MESSAGE = "transaction/initiateSignMessage"
     }
 }
