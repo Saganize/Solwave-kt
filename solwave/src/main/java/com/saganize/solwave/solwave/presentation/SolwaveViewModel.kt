@@ -74,6 +74,18 @@ class SolwaveViewModel(
     private val completeEvents: CompleteEvents,
     private val isConnected: Boolean,
 ) : ViewModel() {
+    private val _state =
+        mutableStateOf(
+            SolwaveState(
+                transactionParams =
+                    TransactionParams(
+                        data =
+                            TransactionPayload(
+                                transaction = transaction,
+                            ),
+                    ),
+            ),
+        )
     val state: State<SolwaveState> = _state
     private var solana: Solana = Solana(HttpNetworkingRouter(RPCEndpoint.devnetSolana))
 
