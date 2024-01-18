@@ -25,7 +25,6 @@ import com.saganize.solwave.solwave.presentation.components.decryptData
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 class SolwaveActivity : ComponentActivity() {
-
     lateinit var viewModel: SolwaveViewModel
 
     @SuppressLint("SourceLockedOrientationActivity")
@@ -36,25 +35,29 @@ class SolwaveActivity : ComponentActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         // this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
 
-        val start = intent.getStringExtra(EventKeys.START.key)
-            ?: throw IllegalStateException(SolwaveErrors.NoStartEventMessage.message)
+        val start =
+            intent.getStringExtra(EventKeys.START.key)
+                ?: throw IllegalStateException(SolwaveErrors.NoStartEventMessage.message)
 
-        val apiKey = intent.getStringExtra(EventKeys.API_KEY.key)
-            ?: throw IllegalStateException(SolwaveErrors.NoApiKeyPassedMessage.message)
+        val apiKey =
+            intent.getStringExtra(EventKeys.API_KEY.key)
+                ?: throw IllegalStateException(SolwaveErrors.NoApiKeyPassedMessage.message)
 
-        val message = if (start == StartEvents.SIGN_MESSAGE.event) {
-            intent.getStringExtra(EventKeys.MESSAGE.key)
-                ?: throw IllegalStateException(SolwaveErrors.NoMessagePassedMessage.message)
-        } else {
-            ""
-        }
+        val message =
+            if (start == StartEvents.SIGN_MESSAGE.event) {
+                intent.getStringExtra(EventKeys.MESSAGE.key)
+                    ?: throw IllegalStateException(SolwaveErrors.NoMessagePassedMessage.message)
+            } else {
+                ""
+            }
 
-        val transactionString = if (start == StartEvents.PAY.event) {
-            intent.getStringExtra(EventKeys.TRANSACTION.key)
-                ?: throw IllegalStateException(SolwaveErrors.NoTransactionPassedMessage.message)
-        } else {
-            ""
-        }
+        val transactionString =
+            if (start == StartEvents.PAY.event) {
+                intent.getStringExtra(EventKeys.TRANSACTION.key)
+                    ?: throw IllegalStateException(SolwaveErrors.NoTransactionPassedMessage.message)
+            } else {
+                ""
+            }
 
         // val completeEvents = intent?.parcelable<CompleteEvents>(EventKeys.EVENT.key)
         //    ?: CompleteEvents()
@@ -64,19 +67,21 @@ class SolwaveActivity : ComponentActivity() {
             val isConnected = connection === ConnectionState.Available
 
             val module = SolwaveAppModuleImpl(this, apiKey)
-            viewModel = viewModel(
-                factory = viewModelFactory {
-                    SolwaveViewModel(
-                        module.usecases,
-                        start,
-                        message = message,
-                        transactionString.toTransaction(),
-                        apiKey,
-                        completeEvents,
-                        isConnected,
-                    )
-                },
-            )
+            viewModel =
+                viewModel(
+                    factory =
+                        viewModelFactory {
+                            SolwaveViewModel(
+                                module.usecases,
+                                start,
+                                message = message,
+                                transactionString.toTransaction(),
+                                apiKey,
+                                completeEvents,
+                                isConnected,
+                            )
+                        },
+                )
 
             if (!isConnected) {
                 viewModel.onEvent(
@@ -97,28 +102,39 @@ class SolwaveActivity : ComponentActivity() {
         val state = viewModel.state.value
 
         if (intent?.action == Intent.ACTION_VIEW) {
-            val uri = intent.data ?: return run {
-                viewModel.updateDeeplinkActionType(null)
+            val uri =
+                intent.data ?: return run {
+                    viewModel.updateDeeplinkActionType(null)
 
-                return@run viewModel.onEvent(
-                    SolwaveEvents.Error(
-                        title = "Something went wrong.",
-                        error = SolwaveErrors.GenericErrorMsg,
-                        closeWebView = false,
-                    ),
-                )
-            }
+                    return@run viewModel.onEvent(
+                        SolwaveEvents.Error(
+                            title = "Something went wrong.",
+                            error = SolwaveErrors.GenericErrorMsg,
+                            closeWebView = false,
+                        ),
+                    )
+                }
 
             val nonce = uri.getQueryParameter("nonce") ?: ""
             val data = uri.getQueryParameter("data") ?: ""
 
             uri.getQueryParameter(getString(R.string.solflare_encryption_public_key))?.let {
                 state.keyPair?.let { keypair ->
+                    val decryptedData =
+                        decryptData(it, keypair.second, nonce, data) ?: return run {
+                            viewModel.onEvent(
+                                SolwaveEvents.Error(
+                                    title = "Something went wrong.",
+                                    error = SolwaveErrors.GenericErrorMsg,
+                                    closeWebView = false,
+                                ),
+                            )
+                        }
                     viewModel.onEvent(
                         SolwaveEvents.SaveWallet(
                             this,
                             WalletProvider.Solflare,
-                            decryptData(it, keypair.second, nonce, data),
+                            decryptedData,
                         ),
                     )
                 }
@@ -126,11 +142,22 @@ class SolwaveActivity : ComponentActivity() {
 
             uri.getQueryParameter(getString(R.string.phantom_encryption_public_key))?.let {
                 state.keyPair?.let { keypair ->
+                    val decryptedData =
+                        decryptData(it, keypair.second, nonce, data) ?: return run {
+                            viewModel.onEvent(
+                                SolwaveEvents.Error(
+                                    title = "Something went wrong.",
+                                    error = SolwaveErrors.GenericErrorMsg,
+                                    closeWebView = false,
+                                ),
+                            )
+                        }
+
                     viewModel.onEvent(
                         SolwaveEvents.SaveWallet(
                             this,
                             WalletProvider.Phantom,
-                            decryptData(it, keypair.second, nonce, data),
+                            decryptedData,
                         ),
                     )
                 }
@@ -184,9 +211,10 @@ class SolwaveActivity : ComponentActivity() {
             uri.getQueryParameter("errorMessage")?.let {
                 viewModel.onEvent(
                     SolwaveEvents.Error(
-                        error = SolwaveErrors.DeepLinkErrorMessage.setError(
-                            it.split(":").getOrNull(1) ?: it,
-                        ),
+                        error =
+                            SolwaveErrors.DeepLinkErrorMessage.setError(
+                                it.split(":").getOrNull(1) ?: it,
+                            ),
                     ),
                 )
             }

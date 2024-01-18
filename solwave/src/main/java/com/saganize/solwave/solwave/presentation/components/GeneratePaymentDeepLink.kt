@@ -1,7 +1,9 @@
 package com.saganize.solwave.solwave.presentation.components
 
+import android.util.Log
 import com.google.gson.Gson
 import com.iwebpp.crypto.TweetNacl
+import com.saganize.solwave.core.di.TAG
 import com.saganize.solwave.core.models.WalletInfo
 import com.saganize.solwave.core.models.WalletProvider
 import com.saganize.solwave.core.util.extensions.splitWalletKey
@@ -63,17 +65,22 @@ fun generatePaymentDeepLink(
         "&payload=$encryptedPayload"
 }
 
-fun decryptData(walletKey: String, privateKey: String, nonce: String, data: String): String {
-    val privateKeyBytes = Base58.decode(privateKey)
-    val phantomKeyBytes = Base58.decode(walletKey)
-    val nonceBytes = Base58.decode(nonce)
-    val dataBytes = Base58.decode(data)
+fun decryptData(walletKey: String, privateKey: String, nonce: String, data: String): String? {
+    return try {
+        val privateKeyBytes = Base58.decode(privateKey)
+        val phantomKeyBytes = Base58.decode(walletKey)
+        val nonceBytes = Base58.decode(nonce)
+        val dataBytes = Base58.decode(data)
 
-    val box = TweetNaclFast.Box(phantomKeyBytes, privateKeyBytes)
-    val decryptedDataBytes = box.open(dataBytes, nonceBytes)
-    val jsonData = String(decryptedDataBytes, Charsets.UTF_8)
+        val box = TweetNaclFast.Box(phantomKeyBytes, privateKeyBytes)
+        val decryptedDataBytes = box.open(dataBytes, nonceBytes)
+        val jsonData = String(decryptedDataBytes, Charsets.UTF_8)
 
-    val solWalletKey = Gson().fromJson(jsonData, SolWalletKey::class.java)
+        val solWalletKey = Gson().fromJson(jsonData, SolWalletKey::class.java)
 
-    return solWalletKey.public_key + "/" + solWalletKey.session + "/" + walletKey
+        solWalletKey.public_key + "/" + solWalletKey.session + "/" + walletKey
+    } catch (e: Exception) {
+        Log.e(TAG, "decryptData: ${e.message}")
+        null
+    }
 }
